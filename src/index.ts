@@ -5,6 +5,7 @@ import { match } from "ts-pattern";
 
 run(
   async () => {
+    console.time("execution");
     const { action, outputFile } = args();
 
     await match(action)
@@ -12,6 +13,7 @@ run(
       .with("products", () => procedures.products(outputFile))
       .exhaustive();
 
+    console.timeEnd("execution");
     process.exit(0);
   },
   {

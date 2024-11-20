@@ -3,8 +3,6 @@ import { safeTextFetch } from "./lib/fetch";
 import { writeFile } from "node:fs/promises";
 import { env } from "./lib/env";
 
-//https://catalog.hifi-filter.com/it-IT/product/SN%2025098/HF050878%20:%20%20:%20%20:%20%20:%20%20:%20V01
-
 type Sitemap = {
   sitemapindex: {
     sitemap: {
@@ -17,9 +15,7 @@ async function getLinks(outputFile: string) {
   const { SITEMAP_URL, PRODUCT_SITEMAP_BASE_URL, FILTER_BASE_URL } = env();
 
   const parser = new XMLParser();
-
   const resp = await safeTextFetch(SITEMAP_URL);
-
   const map = parser.parse(resp) as Sitemap;
 
   const productSitemapUrls = map.sitemapindex.sitemap

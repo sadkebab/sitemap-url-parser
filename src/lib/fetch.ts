@@ -44,63 +44,81 @@ export async function* fetchForHrefs(
   return true;
 }
 
+type HrefParserState = "idle" | "h" | "r" | "e" | "f" | "=" | "read";
 export class HrefParser {
-  status: "idle" | "h" | "r" | "e" | "f" | "=" | "read" = "idle";
-  buffer: string[] = [];
-  next(char: string) {
-    switch (this.status) {
-      case "idle":
-        if (char === "h") {
-          this.status = "h";
-        }
-        return undefined;
-      case "h":
-        if (char === "r") {
-          this.status = "r";
-        } else {
-          this.status = "idle";
-        }
-        return undefined;
-      case "r":
-        if (char === "e") {
-          this.status = "e";
-        } else {
-          this.status = "idle";
-        }
-        return undefined;
-      case "e":
-        if (char === "f") {
-          this.status = "f";
-        } else {
-          this.status = "idle";
-        }
-        return undefined;
-      case "f":
-        if (char === "=") {
-          this.status = "=";
-        } else {
-          this.status = "idle";
-        }
-        return undefined;
-      case "=":
-        if (char === '"') {
-          this.status = "read";
-        } else {
-          this.status = "idle";
-        }
-        return undefined;
-      case "read":
-        if (char === '"') {
-          this.status = "idle";
-          const value = this.buffer.join("");
-          this.buffer = [];
-          return value;
-        }
+  private state: HrefParserState = "idle";
+  private buffer: string[] = [];
 
-        this.buffer.push(char);
-        return undefined;
-      default:
-        throw new Error("Invalid state");
+  private transitions: Map<
+    HrefParserState,
+    (char: string) => { next: HrefParserState; output: string | undefined }
+  > = new Map();
+
+  constructor() {
+    this.transitions.set("idle", (char) => {
+      if (char === "h") {
+        return { next: "h", output: undefined };
+      }
+
+      return { next: "idle", output: undefined };
+    });
+
+    this.transitions.set("h", (char) => {
+      if (char === "r") {
+        return { next: "r", output: undefined };
+      }
+      return { next: "idle", output: undefined };
+    });
+
+    this.transitions.set("r", (char) => {
+      if (char === "e") {
+        return { next: "e", output: undefined };
+      }
+      return { next: "idle", output: undefined };
+    });
+
+    this.transitions.set("e", (char) => {
+      if (char === "f") {
+        return { next: "f", output: undefined };
+      }
+      return { next: "idle", output: undefined };
+    });
+
+    this.transitions.set("f", (char) => {
+      if (char === "=") {
+        return { next: "=", output: undefined };
+      }
+      return { next: "idle", output: undefined };
+    });
+
+    this.transitions.set("=", (char) => {
+      if (char === '"') {
+        return { next: "read", output: undefined };
+      }
+      return { next: "idle", output: undefined };
+    });
+
+    this.transitions.set("read", (char) => {
+      if (char === '"') {
+        const output = this.buffer.join("");
+        this.buffer = [];
+        return { next: "idle", output: output };
+      }
+
+      this.buffer.push(char);
+      return { next: "read", output: undefined };
+    });
+  }
+
+  next(char: string) {
+    const handler = this.transitions.get(this.state);
+
+    if (!handler) {
+      throw new Error(`Unknown state: ${this.state}`);
     }
+
+    const { next, output } = handler(char);
+    this.state = next;
+    return output;
   }
 }

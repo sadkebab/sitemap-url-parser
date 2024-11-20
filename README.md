@@ -1,4 +1,4 @@
-# hifi-filters
+# sitema-url parser
 
 To install dependencies:
 
@@ -9,7 +9,5 @@ bun install
 To run:
 
 ```bash
-bun run index.ts
+bun start links <path-to-output-file>
 ```
-
-This project was created using `bun init` in bun v1.1.27. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

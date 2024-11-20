@@ -1,5 +1,5 @@
 {
-  "name": "hifi-filters",
+  "name": "sitema-url-parser",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
